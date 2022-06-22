@@ -25,7 +25,7 @@ const app = express();
 let db = null;
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: ['http://localhost:3000', 'https://logmytravel.herokuapp.com'],
   credentials: true,
 }));
 
