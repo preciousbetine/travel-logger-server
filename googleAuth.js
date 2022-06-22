@@ -20,6 +20,7 @@ const checkAuthenticated = async (req, res, next) => {
     user.picture = payload.picture;
 
     req.user = user;
+    console.log('checkAuthenticated() - Token authenticated successfully.');
     next();
   }
   catch (err) {

@@ -45,7 +45,10 @@ app.post('/tokensignin', async (req, res) => {
     res.clearCookie('session-token');
     return res.json({error: 'Invalid token provided'});
   }
-  res.cookie('session-token', token);
+  res.cookie('session-token', token, {
+    sameSite: 'none',
+    secure: true,
+  });
   res.send("success");
 });
 
@@ -56,7 +59,10 @@ app.post('/emailSignUp', async (req, res) => {
     res.json(sessionId);
     return;
   }
-  res.cookie('user_session_id', sessionId);
+  res.cookie('user_session_id', sessionId, {
+    sameSite: 'none',
+    secure: true,
+  });
   res.json({});
 });
 
@@ -67,7 +73,10 @@ app.post('/emailLogin', async (req, res) => {
     res.json(sessionId);
     return;
   }
-  res.cookie('user_session_id', sessionId);
+  res.cookie('user_session_id', sessionId, {
+    sameSite: 'none',
+    secure: true,
+  });
   res.json({});
 });
 
@@ -192,9 +201,16 @@ app.delete('/experience/:id', checkAuthenticated, checkUser, async (req, res) =>
 
 
 // Log a user out
-app.get('/logout', (req, res)=>{
-  res.clearCookie('session-token');
-  res.clearCookie('user_session_id');
+app.get('/logout', checkAuthenticated, checkUser, (req, res)=>{
+  console.log('Logging user out');
+  res.clearCookie('session-token',  {
+    sameSite: 'none',
+    secure: true,
+  });
+  res.clearCookie('user_session_id', {
+    sameSite: 'none',
+    secure: true,
+  });
   res.end();
 });
 
