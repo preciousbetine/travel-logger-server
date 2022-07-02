@@ -130,6 +130,7 @@ const emailSignUp = async (req) => {
     location: '',
     description: '',
     website: '',
+    picture: '62c01dd258b4dbaf7670a4e1',
     experiences: [],
   }
   await req.db.collection('users').insertOne(newUser);

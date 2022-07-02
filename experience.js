@@ -84,7 +84,7 @@ const getUserExperiences = async (req) => {
   console.log('getting user experiences() - params', req.params, ' query: ', req.query);
   let { index } = req.query;
   index = Number(index);
-  
+
   let objectid;
   try {
     objectid = ObjectId(req.params.userId);
