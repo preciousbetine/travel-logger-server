@@ -25,7 +25,14 @@ const checkAuthenticated = async (req, res, next) => {
   }
   catch (err) {
     console.log('checkAuthenticated() - Google token error. Clearing cookie.');
-    res.clearCookie('session-token');
+    res.clearCookie('session-token', {
+      sameSite: 'none',
+      secure: true,
+    });
+    res.clearCookie('user_session_id', {
+      sameSite: 'none',
+      secure: true,
+    });
     res.end();
   }
 }

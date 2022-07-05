@@ -20,7 +20,14 @@ const checkUser = async (req, res, next) => {
     else {
       // No User with that token is logged in: clear the false cookie
       console.log('checkUser() - User\'s token is invalid');
-      res.clearCookie('user_session_id');
+      res.clearCookie('user_session_id', {
+        sameSite: 'none',
+        secure: true,
+      });
+      res.clearCookie('session-token', {
+        sameSite: 'none',
+        secure: true,
+      });
       return res.end();
     }
   }

@@ -42,7 +42,14 @@ app.post('/tokensignin', async (req, res) => {
   console.log("post /tokensignin - User signing in with google");
   const token = await gTokenSignIn(req.body.credential);
   if (token.error) {
-    res.clearCookie('session-token');
+    res.clearCookie('session-token', {
+      sameSite: 'none',
+      secure: true,
+    });
+    res.clearCookie('user_session_id', {
+      sameSite: 'none',
+      secure: true,
+    });
     return res.json({error: 'Invalid token provided'});
   }
   res.cookie('session-token', token, {
