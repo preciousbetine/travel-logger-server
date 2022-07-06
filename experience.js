@@ -35,7 +35,7 @@ const addExperience = async (req) => {
   );
 
   console.log('addExperience() - Experience Added');
-  return {success: true};
+  return {success: true, experiences: user.experiences.reverse().slice(0, 10)};
 };
 
 const getExperiences = async (req) => {
