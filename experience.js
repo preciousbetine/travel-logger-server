@@ -23,7 +23,13 @@ const addExperience = async (req) => {
   }
   req.body.postId = generatePostId(user.experiences.length);
   console.log(req.body.postId);
-  user.experiences.push(req.body);
+
+  req.body.userEmail = req.user.email;
+  const postId = await req.db.collection('posts').insertOne({
+    post: req.body,
+  });
+
+  user.experiences.push(postId.insertedId.toString());
 
   // Update User
   await req.db.collection('users').findOneAndUpdate(
@@ -50,8 +56,27 @@ const getExperiences = async (req) => {
 
   user = user[0];
   user.experiences = user.experiences.reverse();
+
   if (user.experiences.length < index) return {experiences: []}
-  return {experiences: user.experiences.slice(index, index + 10)};
+
+  user.experiences = user.experiences.slice(index, index + 10);
+
+  const posts = [];
+
+  for (const experience of user.experiences) {
+    let objectid;
+    try {
+      objectid = ObjectId(experience);
+    }
+    catch (err) {
+      console.log(err);
+      return { experiences: [] };
+    }
+    const post = await req.db.collection('posts').findOne({ _id: objectid });
+    posts.push(post.post);    
+  }
+
+  return {experiences: posts};
 };
 
 const deleteExperience = async (req) => {
@@ -103,8 +128,27 @@ const getUserExperiences = async (req) => {
 
   user = user[0];
   user.experiences = user.experiences.reverse();
+
   if (user.experiences.length < index) return {experiences: []}
-  return {experiences: user.experiences.slice(index, index + 10)};
+
+  user.experiences = user.experiences.slice(index, index + 10);
+
+  const posts = [];
+
+  for (const experience of user.experiences) {
+    let objectid;
+    try {
+      objectid = ObjectId(experience);
+    }
+    catch (err) {
+      console.log(err);
+      return { experiences: [] };
+    }
+    const post = await req.db.collection('posts').findOne({ _id: objectid });
+    posts.push(post.post);    
+  }
+
+  return {experiences: posts};
 }
 
 module.exports = { 

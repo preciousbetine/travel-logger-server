@@ -206,6 +206,29 @@ app.delete('/experience/:id', checkAuthenticated, checkUser, async (req, res) =>
   res.status(201).json(response);
 });
 
+// Get posts timeline
+app.get('/timeline', async (req, res) => {
+  let { index } = req.query;
+  let posts = await db.collection('posts').find().sort({ _id: -1 });
+  posts = await posts.skip(Number(index)).limit(20).toArray();
+  for (const post of posts) {
+    let user = await db.collection('users').find({ email: post.post.userEmail });
+    user = await user.next();
+    delete user._id;
+    delete user.email;
+    delete user.followers;
+    delete user.following;
+    delete user.location;
+    delete user.website;
+    delete user.description;
+    delete user.experiences;
+    delete user.password;
+    delete user.sessionId;
+    post.post.user = user;
+  }
+  res.json({ posts });
+});
+
 
 // Log a user out
 app.get('/logout', checkAuthenticated, checkUser, (req, res)=>{
