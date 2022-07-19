@@ -95,9 +95,13 @@ app.get('/userLogin', checkAuthenticated, checkUser, (req, res, next) => {
   res.json({success: true, isNewUser: req.isNewUser});
 });
 
+app.get('/checkFollowing/:id', checkAuthenticated, checkUser, (req, res) => {
+  if (req.user.following.indexOf(req.params.id) > -1) res.json({ following: true });
+  else res.json({ following: false });
+});
+
 // Get a photo
 app.get('/photo/:id', async (req, res) => {
-  console.log(`get photo - fetching photo ${req.params.id}`);
   let objectid;
   try {
     objectid = ObjectId(req.params.id);
@@ -120,7 +124,6 @@ app.get('/photo/:id', async (req, res) => {
     'Content-Type': contentType,
     'Content-Length': picture.length,
   });
-  console.log(`get photo - sending photo ${req.params.id}`);
   res.end(picture);
 });
 
@@ -229,6 +232,95 @@ app.get('/timeline', async (req, res) => {
   res.json({ posts });
 });
 
+// Follow a user
+app.get('/followUser/:id', checkAuthenticated, checkUser, async (req, res) => {
+  if (req.user.following.indexOf(req.params.id) < 0) {
+    let objectid;
+    try {
+      objectid = ObjectId(req.params.id);
+    }
+    catch (err) {
+      console.log(err);
+      res.end();
+      return;
+    }
+
+    console.log('Following user', req.params.id);
+    req.user.following.push(req.params.id);
+    // update user
+    await db.collection('users').findOneAndUpdate(
+      { email: req.user.email },
+      { $set: {
+          following: req.user.following,
+        } 
+      }
+    );
+
+    // Increase followers of user with id
+    let user = await db.collection('users').findOne({ _id: objectid });
+    user.followers.push(req.user._id.toString());
+    // update user
+    await db.collection('users').findOneAndUpdate(
+      { email: user.email },
+      { $set: {
+          followers: user.followers,
+        } 
+      }
+    );
+      
+    res.json({success: true});
+  }
+  else {
+    console.log('Already following user...');
+    res.json({success: false});
+  }
+});
+
+// Unfollow a user
+app.get('/unfollowUser/:id', checkAuthenticated, checkUser, async (req, res) => {
+  if (req.user.following.indexOf(req.params.id) > -1) {
+    let objectid;
+    try {
+      objectid = ObjectId(req.params.id);
+    }
+    catch (err) {
+      console.log(err);
+      res.end();
+      return;
+    }
+
+    console.log('Unfollowing user ', req.params.id);
+    req.user.following.splice(req.user.following.indexOf(req.params.id), 1);
+    // update user
+    await db.collection('users').findOneAndUpdate(
+      { email: req.user.email },
+      { $set: {
+          following: req.user.following,
+        } 
+      }
+    );
+
+    // Remove user from followers list
+    let user = await db.collection('users').findOne({ _id: objectid });
+    console.log(user.followers);
+    user.followers.splice(user.followers.indexOf(req.user._id.toString()), 1);
+    // update user
+    await db.collection('users').findOneAndUpdate(
+      { email: user.email },
+      { $set: {
+          followers: user.followers,
+        } 
+      }
+    );
+
+    res.json({ success: true });
+
+    
+  } else {
+    console.log('Not following User ', req.params.id);
+    res.json({ success: false });
+  }
+})
 
 // Log a user out
 app.get('/logout', checkAuthenticated, checkUser, (req, res)=>{

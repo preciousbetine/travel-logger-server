@@ -81,7 +81,7 @@ const getRandomUsers = async (req) => {
     },
     {
       $sample: {
-        'size': 5
+        'size': 3
       }
     }
   ];
@@ -95,8 +95,6 @@ const getRandomUsers = async (req) => {
     picture: user.picture,
     location: user.location,
   }));
-
-  console.log(users);
 
   return {users};
 };
