@@ -2,10 +2,6 @@ const crypto = require('crypto');
 const res = require('express/lib/response');
 const { ObjectId } = require('mongodb');
 
-const generatePostId = (length) => {
-  return `${Math.random()}post${length}`
-};
-
 const addExperience = async (req) => {
   console.log('addExperience() - Posting New Experience');
   // Fetch User from db 
@@ -21,8 +17,6 @@ const addExperience = async (req) => {
     });
     req.body.images[i] = imageId.insertedId.toString();
   }
-  req.body.postId = generatePostId(user.experiences.length);
-  console.log(req.body.postId);
 
   req.body.userEmail = req.user.email;
   const postId = await req.db.collection('posts').insertOne({
@@ -73,6 +67,7 @@ const getExperiences = async (req) => {
       return { experiences: [] };
     }
     const post = await req.db.collection('posts').findOne({ _id: objectid });
+    post.post.postId = experience;
     posts.push(post.post);    
   }
 
@@ -89,9 +84,17 @@ const deleteExperience = async (req) => {
   await userCursor.forEach((entry) => user.push(entry));
 
   user = user[0];
-  user.experiences = user.experiences.filter((experience) => experience.postId !== id);
 
-  console.log(user.experience);
+  let objectid;
+  try {
+    objectid = ObjectId(id);
+  }
+  catch (err) {
+    console.log(err);
+    return {};
+  }
+
+  user.experiences = user.experiences.filter((experience) => experience !== id);
 
   // update user
   await req.db.collection('users').findOneAndUpdate(
@@ -102,7 +105,7 @@ const deleteExperience = async (req) => {
     }
   );
 
-  return {experiences: user.experiences.reverse().slice(0, 10)};
+  return getExperiences({ ...req, query: { index: 0 }});
 };
 
 const getUserExperiences = async (req) => {

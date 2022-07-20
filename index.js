@@ -210,9 +210,21 @@ app.delete('/experience/:id', checkAuthenticated, checkUser, async (req, res) =>
 });
 
 // Get posts timeline
-app.get('/timeline', async (req, res) => {
+app.get('/timeline', checkAuthenticated, checkUser, async (req, res) => {
   let { index } = req.query;
-  let posts = await db.collection('posts').find().sort({ _id: -1 });
+  let following = req.user.following.map((userId) => new ObjectId(userId));
+  const emails = [];
+
+  for (const id of following) {
+    let user = await db.collection('users').find({ _id: id });
+    user = await user.next();
+    emails.push(user.email);
+  }
+
+  let posts = await db.collection('posts').find({
+    'post.userEmail': { $in: emails },
+  }).sort({ _id: -1 });
+
   posts = await posts.skip(Number(index)).limit(20).toArray();
   for (const post of posts) {
     let user = await db.collection('users').find({ email: post.post.userEmail });
@@ -229,6 +241,7 @@ app.get('/timeline', async (req, res) => {
     delete user.sessionId;
     post.post.user = user;
   }
+
   res.json({ posts });
 });
 
